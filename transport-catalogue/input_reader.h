@@ -1,4 +1,6 @@
 #pragma once
+
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -36,3 +38,5 @@ public:
 private:
     std::vector<CommandDescription> commands_;
 };
+
+void LoopForInput(catalogue::TransportCatalogue& catalogue, const int base_request_count);

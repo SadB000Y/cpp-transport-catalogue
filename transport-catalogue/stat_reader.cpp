@@ -39,3 +39,11 @@ void ParseAndPrintStat(const catalogue::TransportCatalogue& tansport_catalogue, 
 
     }
 }
+
+void LoopForPrint(const catalogue::TransportCatalogue& tansport_catalogue,  const int stat_request_count) {
+    for (int i = 0; i < stat_request_count; ++i) {
+        std::string line;
+        std::getline(std::cin, line);
+        ParseAndPrintStat(tansport_catalogue, line, std::cout);
+    }
+}
