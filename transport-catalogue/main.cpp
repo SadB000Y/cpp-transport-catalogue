@@ -11,10 +11,10 @@ int main() {
 
     int base_request_count;
     cin >> base_request_count >> ws;
-    LoopForInput(catalogue, base_request_count);
+    LoopForInput(catalogue, base_request_count, cin);
 
     int stat_request_count;
     cin >> stat_request_count >> ws;
-    LoopForPrint(catalogue, stat_request_count);
+    LoopForPrint(catalogue, stat_request_count, cin);
    
 }

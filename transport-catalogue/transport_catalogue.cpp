@@ -2,18 +2,18 @@
 #include "geo.h"
 
 template <typename Type>
-std::set<Type> MakeSet(std::vector<Type>& query_words)
+std::set<Type> MakeSet(const std::vector<Type>& query_words)
 {
     std::set<Type> s(query_words.begin(), query_words.end());
     return s;
 }
 
-void catalogue::TransportCatalogue::AddStop(BusStop& stops) {
+void catalogue::TransportCatalogue::AddStop(const BusStop& stops) {
     stops_.push_back(stops); 
 	name_to_stop_.insert({ stops_.back().name_of_stop, &stops_.back() });
 }
 
-void catalogue::TransportCatalogue::AddBus(std::string id, std::vector<std::string_view>&& routes) {
+void catalogue::TransportCatalogue::AddBus(const std::string& id, const std::vector<std::string_view>& routes) {
 	std::vector<BusStop*> route;
 
 	for (size_t i = 0; i < routes.size(); ++i)

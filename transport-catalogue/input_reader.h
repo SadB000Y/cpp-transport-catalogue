@@ -39,4 +39,4 @@ private:
     std::vector<CommandDescription> commands_;
 };
 
-void LoopForInput(catalogue::TransportCatalogue& catalogue, const int base_request_count);
+void LoopForInput(catalogue::TransportCatalogue& catalogue, const int base_request_count, std::istream& input);

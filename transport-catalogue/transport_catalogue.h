@@ -38,9 +38,9 @@ namespace catalogue {
 			std::vector<std::string> buses;
 		};
 
-		void AddStop(BusStop& stop);
+		void AddStop(const BusStop& stop);
 
-		void AddBus(std::string id, std::vector<std::string_view>&& route);
+		void AddBus(const std::string& id, const std::vector<std::string_view>& route);
 
 		BusesInfo GetBusInfo(std::string_view name_of_bus) const;
 
