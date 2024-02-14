@@ -102,12 +102,42 @@ void InputReader::ParseLine(std::string_view line) {
     }
 }
 
+std::vector<std::pair<std::string_view, int>> ParseDistances(std::string_view str)
+{
+    std::vector<std::pair<std::string_view, int>> result;
+    size_t pos = 0;
+    size_t end_this_values = 0;
+    pos = str.find_first_of(',', pos + 1); pos = str.find_first_of(',', pos + 1); pos += 1;
+    std::string_view description_distances = Trim(str.substr(pos));
+    pos = 0;
+
+    while (end_this_values != description_distances.npos)
+    {
+        int distance = 0;
+        std::string_view stopname;
+
+        pos = description_distances.find_first_not_of(' ', pos);
+        distance = std::stoi(std::string(description_distances.substr(pos, description_distances.find_first_of('m', pos))));
+        pos = description_distances.find_first_of(' ', pos); pos = description_distances.find_first_of(' ', pos + 1);
+        end_this_values = description_distances.find_first_of(',', pos);
+        if (pos == description_distances.npos && end_this_values == description_distances.npos)
+            return {};
+        stopname = Trim(description_distances.substr(pos, (end_this_values - pos)));
+
+        pos = end_this_values + 2;
+        result.push_back({ std::move(stopname), std::move(distance) });
+    }
+
+    return result;
+}
+
 void InputReader::ApplyCommands([[maybe_unused]] catalogue::TransportCatalogue & catalogue) const {
     
     for (const auto& commands : commands_) 
         if (commands.command == "Stop") {
             catalogue::TransportCatalogue::BusStop new_stop = { commands.id, ParseCoordinates(commands.description) };
-            catalogue.AddStop(new_stop);
+            auto distances = ParseDistances(commands.description);
+            catalogue.AddStop(new_stop, std::move(distances));
         }
    
     for (const auto& commands : commands_)

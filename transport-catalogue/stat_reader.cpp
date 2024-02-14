@@ -13,8 +13,8 @@ void ParseAndPrintStat(const catalogue::TransportCatalogue& tansport_catalogue, 
         auto information = std::move(tansport_catalogue.GetBusInfo(num_of_bus));
         if (information.amount_stops != 0) {
             output << "Bus " << num_of_bus << ": " << information.amount_stops << " stops on route, " <<
-                information.amount_unique_stops << " unique stops, " << information.length << " route length"
-                << std::endl;
+                information.amount_unique_stops << " unique stops, " << information.length << " route length, "
+                << information.curvature << " curvature" << std::endl;
         }
         else {
             output << "Bus " << num_of_bus << ": " << "not found" << std::endl;

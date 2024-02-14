@@ -40,3 +40,5 @@ private:
 };
 
 void LoopForInput(catalogue::TransportCatalogue& catalogue, const int base_request_count, std::istream& input);
+
+std::vector<std::pair<std::string_view, int>> ParseDistances(std::string_view str);

@@ -11,7 +11,41 @@
 #include <algorithm>
 #include "geo.h"
 
+struct BusStop;
+struct Buses;
+
 namespace catalogue {
+
+	namespace hasher{
+
+		class StopsDistancePair{
+		public:
+			size_t operator()(const std::pair<std::string_view, std::string_view> stops) const{
+				size_t hash_first = hasher_(stops.first);
+				size_t hash_second = hasher_(stops.second);
+				return hash_first + hash_second * 37;
+			}
+			bool operator==(const std::pair<BusStop*, BusStop*> other) const{
+				return *this == other;
+			}
+		private:
+			std::hash<std::string_view> hasher_;
+		};
+
+		class StrView {
+		public:
+			size_t operator()(const std::string_view str) const
+			{
+				return hasher_(str);
+			}
+			bool operator==(const std::string_view other) const
+			{
+				return *this == other;
+			}
+		private:
+			std::hash<std::string_view> hasher_;
+		};
+	}
 
 	class TransportCatalogue {
 
@@ -31,6 +65,7 @@ namespace catalogue {
 			size_t amount_stops;
 			size_t amount_unique_stops;
 			double length;
+			double curvature;
 		};
 
 		struct StopsInfo {
@@ -38,7 +73,7 @@ namespace catalogue {
 			std::vector<std::string> buses;
 		};
 
-		void AddStop(const BusStop& stop);
+		void AddStop(const BusStop& stop, const std::vector<std::pair<std::string_view, int>> distances);
 
 		void AddBus(const std::string& id, const std::vector<std::string_view>& route);
 
@@ -46,19 +81,19 @@ namespace catalogue {
 
 		StopsInfo GetStopInfo(std::string_view name_of_bus) const;
 
-		/*size_t UniqueStopsCount(std::string_view bus_number) const;
-
-		double LengthCount(std::string_view bus_number) const;*/
-
 	private:
 		std::deque<BusStop> stops_;
-		std::unordered_map<std::string_view, BusStop*> name_to_stop_;
+		std::unordered_map<std::string_view, BusStop*, hasher::StrView> name_to_stop_;
+		std::unordered_map<std::pair<const std::string_view, const std::string_view>, int, hasher::StopsDistancePair> stops_distance_;
 
 		std::deque<Buses> buses_;
-		std::unordered_map<std::string_view, Buses*> name_to_bus_;
+		std::unordered_map<std::string_view, Buses*, hasher::StrView> name_to_bus_;
+
+		std::deque<std::string> distances_;
 
 		size_t UniqueStopsCount(std::string_view bus_number) const;
 		double LengthCount(std::string_view bus_number) const;
+		std::tuple<double, double> ComputeCurvature(std::string_view name_of_bus) const;
 		// Реализуйте класс самостоятельно
 	};
 }
