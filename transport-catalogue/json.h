@@ -30,11 +30,6 @@ namespace json
 
         using Value = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
 
-        // explicit Node(Array array);
-        // explicit Node(Dict map);
-        // explicit Node(int value);
-        // explicit Node(std::string value);
-
         template <typename Type>
         Node(Type value) : value_(value)
         {

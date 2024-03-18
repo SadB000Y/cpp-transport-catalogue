@@ -1,9 +1,10 @@
 #include "json_reader.h"
 #include <sstream>
+
 namespace transport_catalogue
 {
 
-    BusStops ParseBusInfo(json::Dict dict_bus_info)
+    BusStops JSONreader::ParseBusInfo(const json::Dict& dict_bus_info)
     {
         std::vector<std::string> stops;
         bool is_roundtrip = true;
@@ -26,7 +27,7 @@ namespace transport_catalogue
         return {dict_bus_info.at("name").AsString(), stops, is_roundtrip};
     }
 
-    Stop ParseStopInfo(json::Dict dict_stop_info)
+    Stop JSONreader::ParseStopInfo(const json::Dict& dict_stop_info)
     {
         std::unordered_map<std::string, int64_t> stops_to_dists;
 
@@ -42,16 +43,17 @@ namespace transport_catalogue
         return {dict_stop_info.at("name").AsString(), coords, stops_to_dists};
     }
 
-    void ProcessRequest(std::istream &input, std::ostream &output, TransportCatalogue &catal)
+    void JSONreader::ProcessRequest(std::istream &input, std::ostream &output, TransportCatalogue &catal)
     {
 
         auto doc = json::Load(input);
         json::Dict result_dict = doc.GetRoot().AsMap();
+        MapRenderer prop;
 
         json::Array base_req = result_dict.at("base_requests").AsArray();
         json::Array stat_req = result_dict.at("stat_requests").AsArray();
         json::Node rander_sett = result_dict.at("render_settings");
-        SvgInfo properties = ParsePropLine(rander_sett);
+        SvgInfo properties = prop.ParsePropLine(rander_sett);
         InputReader(base_req, catal);
         output << "[" << std::endl;
         AnswerRequests(stat_req, output, catal, properties);
@@ -59,7 +61,7 @@ namespace transport_catalogue
                << "]" << std::endl;
     }
 
-    void InputReader(json::Array base_req, TransportCatalogue &catal)
+    void JSONreader::InputReader(json::Array base_req, TransportCatalogue &catal)
     {
         Requests requests;
         for (auto &node : base_req)
@@ -104,8 +106,9 @@ namespace transport_catalogue
         }
     }
 
-    void AnswerRequests(const json::Array &stat_req, std::ostream &output, TransportCatalogue &catal, SvgInfo &properties)
+    void JSONreader::AnswerRequests(const json::Array &stat_req, std::ostream &output, TransportCatalogue &catal, SvgInfo &properties)
     {
+        MapRenderer doc;
         bool isfirstreq = true;
         for (auto &request_node : stat_req)
         {
@@ -114,14 +117,14 @@ namespace transport_catalogue
             {
                 if (isfirstreq)
                 {
-                    json::Dict result = FormBusDataJSON(request_node, catal);
+                    json::Dict result = ExecuteBusRequest(request_node, catal);
                     json::Print(json::Document{result}, output);
                     isfirstreq = false;
                 }
                 else
                 {
                     output << "," << std::endl;
-                    json::Dict result = FormBusDataJSON(request_node, catal);
+                    json::Dict result = ExecuteBusRequest(request_node, catal);
                     json::Print(json::Document{result}, output);
                 }
             }
@@ -129,25 +132,25 @@ namespace transport_catalogue
             {
                 if (isfirstreq)
                 {
-                    json::Dict result = FormStopDataJSON(request_node, catal);
+                    json::Dict result = ExecuteStopRequest(request_node, catal);
                     json::Print(json::Document{result}, output);
                     isfirstreq = false;
                 }
                 else
                 {
                     output << "," << std::endl;
-                    json::Dict result = FormStopDataJSON(request_node, catal);
+                    json::Dict result = ExecuteStopRequest(request_node, catal);
                     json::Print(json::Document{result}, output);
                 }
             }
             else
             {
 
-                svg::Document &result_doc = (FormSVGDocument(catal, properties));
+                svg::Document &result_doc = (doc.FormSVGDocument(catal, properties));
                 std::ostringstream out;
                 result_doc.Render(out);
                 std::string map_rend_string = out.str();
-                json::Dict result = FormMapDataJson(request_node, map_rend_string);
+                json::Dict result = ExecuteMapRequest(request_node, map_rend_string);
                 if (isfirstreq)
                 {
                     json::Print(json::Document{result}, output);
@@ -162,7 +165,7 @@ namespace transport_catalogue
         }
     }
 
-    json::Dict FormMapDataJson(json::Node request_node, const std::string &map_rend_string)
+    json::Dict JSONreader::ExecuteMapRequest(json::Node request_node, const std::string &map_rend_string)
     {
         json::Dict result;
         double request_id = request_node.AsMap().at("id").AsDouble();
@@ -171,7 +174,7 @@ namespace transport_catalogue
         return result;
     }
 
-    json::Dict FormBusDataJSON(json::Node request_node, TransportCatalogue &catal)
+    json::Dict JSONreader::ExecuteBusRequest(json::Node request_node, TransportCatalogue &catal)
     {
         json::Dict result;
         std::string name_of_the_bus = request_node.AsMap().at("name").AsString();
@@ -195,7 +198,7 @@ namespace transport_catalogue
         }
     }
 
-    json::Dict FormStopDataJSON(json::Node request_node, TransportCatalogue &catal)
+    json::Dict JSONreader::ExecuteStopRequest(json::Node request_node, TransportCatalogue &catal)
     {
         json::Dict result;
         std::string name_of_the_stop = request_node.AsMap().at("name").AsString();

@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 #include "geo.h"
+#include "json.h"
+
 namespace transport_catalogue
 {
 
@@ -53,3 +55,9 @@ namespace transport_catalogue
      *
      */
 }
+
+struct Requests
+{
+    json::Array stops_requests;
+    json::Array bus_requests;
+};

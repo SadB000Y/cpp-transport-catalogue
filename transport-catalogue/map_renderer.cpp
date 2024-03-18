@@ -36,7 +36,7 @@ namespace transport_catalogue
         return result;
     }
 
-    SvgInfo ParsePropLine(json::Node node)
+    SvgInfo MapRenderer::ParsePropLine(json::Node node)
     {
         SvgInfo res;
         res.width = node.AsMap().at("width").AsDouble();
@@ -62,7 +62,7 @@ namespace transport_catalogue
         return res;
     }
 
-    svg::Document &FormSVGDocument(TransportCatalogue &catal, SvgInfo &prop)
+    svg::Document &MapRenderer::FormSVGDocument(TransportCatalogue &catal, SvgInfo &prop)
     {
         static svg::Document result;
         auto all_buses = catal.GetAllBuses();
@@ -109,7 +109,7 @@ namespace transport_catalogue
         return result;
     }
 
-    void DrawStops(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc)
+    void MapRenderer::DrawStops(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc)
     {
         std::vector<svg::Circle> result;
         auto projectorinfo = SphereProjector(coords.begin(), coords.end(), prop.width, prop.height, prop.padding);
@@ -133,7 +133,7 @@ namespace transport_catalogue
         }
     }
 
-    void DrawStopNames(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc)
+    void MapRenderer::DrawStopNames(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc)
     {
         std::vector<svg::Text> result;
         auto projectorinfo = SphereProjector(coords.begin(), coords.end(), prop.width, prop.height, prop.padding);
@@ -176,7 +176,7 @@ namespace transport_catalogue
         }
     }
 
-    std::vector<svg::Text> DrawRouteNames(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator)
+    std::vector<svg::Text> MapRenderer::DrawRouteNames(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator)
     {
         if (bus.stops.size() != 0)
         {
@@ -252,7 +252,7 @@ namespace transport_catalogue
         return {};
     }
 
-    svg::Polyline DrawThePolyline(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator)
+    svg::Polyline MapRenderer::DrawThePolyline(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator)
     {
         svg::Polyline result;
         result.SetFillColor("none")

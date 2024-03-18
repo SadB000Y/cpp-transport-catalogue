@@ -37,23 +37,29 @@ namespace transport_catalogue
         std::vector<svg::Color> color_palette;
     };
 
-    svg::Color ParseColor(json::Node node);
-
-    SvgInfo ParsePropLine(json::Node node);
-
-    svg::Document &FormSVGDocument(TransportCatalogue &catal, SvgInfo &prop);
-
-    svg::Polyline DrawThePolyline(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator);
-    void DrawStops(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc);
-    void DrawStopNames(std::vector<geo::Coordinates> &coords, TransportCatalogue &catal, SvgInfo &prop, svg::Document &result_doc);
-
-    std::vector<svg::Text> DrawRouteNames(std::vector<geo::Coordinates> &coords, Buses bus, SvgInfo &prop, int &color_iterator);
-
     inline const double EPSILON = 1e-6;
     bool IsZero(double value);
+    svg::Color ParseColor(json::Node node);
 
-    class SphereProjector
-    {
+    class MapRenderer {
+
+    public:
+
+        svg::Document& FormSVGDocument(TransportCatalogue& catal, SvgInfo& prop);
+
+        SvgInfo ParsePropLine(json::Node node);
+
+    private:
+
+        svg::Polyline DrawThePolyline(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
+        void DrawStops(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
+        void DrawStopNames(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
+        std::vector<svg::Text> DrawRouteNames(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
+
+    };
+
+    class SphereProjector{
+
     public:
         // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
         template <typename PointInputIt>
