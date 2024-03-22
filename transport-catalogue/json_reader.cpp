@@ -33,7 +33,7 @@ namespace transport_catalogue
 
         if (dict_stop_info.count("road_distances"))
         {
-            for (auto [stop, dist] : dict_stop_info.at("road_distances").AsMap())
+            for (auto [stop, dist] : dict_stop_info.at("road_distances").AsDict())
             {
                 stops_to_dists.insert({stop, dist.AsInt()});
             }
@@ -47,7 +47,7 @@ namespace transport_catalogue
     {
 
         auto doc = json::Load(input);
-        json::Dict result_dict = doc.GetRoot().AsMap();
+        json::Dict result_dict = doc.GetRoot().AsDict();
         MapRenderer prop;
 
         json::Array base_req = result_dict.at("base_requests").AsArray();
@@ -66,10 +66,10 @@ namespace transport_catalogue
         Requests requests;
         for (auto &node : base_req)
         {
-            if (node.AsMap().at("type").AsString() == "Stop")
+            if (node.AsDict().at("type").AsString() == "Stop")
             {
                 requests.stops_requests.push_back(node);
-                catal.AddStop(ParseStopInfo(node.AsMap()));
+                catal.AddStop(ParseStopInfo(node.AsDict()));
             }
             else
             {
@@ -79,7 +79,7 @@ namespace transport_catalogue
 
         for (auto &stop_node : requests.stops_requests)
         {
-            auto stop_info = ParseStopInfo(std::move(stop_node).AsMap());
+            auto stop_info = ParseStopInfo(std::move(stop_node).AsDict());
 
             if (stop_info.stops_to_dists.size() != 0)
             {
@@ -93,7 +93,7 @@ namespace transport_catalogue
         for (auto &bus_node : requests.bus_requests)
         {
             std::vector<Stop *> stops;
-            auto bus_info = ParseBusInfo(std::move(bus_node).AsMap());
+            auto bus_info = ParseBusInfo(std::move(bus_node).AsDict());
             for (auto &memb : bus_info.stops)
             {
                 stops.push_back(catal.FindStop(memb));
@@ -113,7 +113,7 @@ namespace transport_catalogue
         for (auto &request_node : stat_req)
         {
 
-            if (request_node.AsMap().at("type").AsString() == "Bus")
+            if (request_node.AsDict().at("type").AsString() == "Bus")
             {
                 if (isfirstreq)
                 {
@@ -128,7 +128,7 @@ namespace transport_catalogue
                     json::Print(json::Document{result}, output);
                 }
             }
-            else if (request_node.AsMap().at("type").AsString() == "Stop")
+            else if (request_node.AsDict().at("type").AsString() == "Stop")
             {
                 if (isfirstreq)
                 {
@@ -168,7 +168,7 @@ namespace transport_catalogue
     json::Dict JSONreader::ExecuteMapRequest(json::Node request_node, const std::string &map_rend_string)
     {
         json::Dict result;
-        double request_id = request_node.AsMap().at("id").AsDouble();
+        double request_id = request_node.AsDict().at("id").AsDouble();
         result["request_id"] = request_id;
         result["map"] = map_rend_string;
         return result;
@@ -177,8 +177,8 @@ namespace transport_catalogue
     json::Dict JSONreader::ExecuteBusRequest(json::Node request_node, TransportCatalogue &catal)
     {
         json::Dict result;
-        std::string name_of_the_bus = request_node.AsMap().at("name").AsString();
-        double request_id = request_node.AsMap().at("id").AsDouble();
+        std::string name_of_the_bus = request_node.AsDict().at("name").AsString();
+        double request_id = request_node.AsDict().at("id").AsDouble();
         result["request_id"] = request_id;
 
         if (catal.FindBus(name_of_the_bus))
@@ -201,8 +201,8 @@ namespace transport_catalogue
     json::Dict JSONreader::ExecuteStopRequest(json::Node request_node, TransportCatalogue &catal)
     {
         json::Dict result;
-        std::string name_of_the_stop = request_node.AsMap().at("name").AsString();
-        double request_id = request_node.AsMap().at("id").AsDouble();
+        std::string name_of_the_stop = request_node.AsDict().at("name").AsString();
+        double request_id = request_node.AsDict().at("id").AsDouble();
         result["request_id"] = request_id;
         if (catal.FindStop(name_of_the_stop))
         {

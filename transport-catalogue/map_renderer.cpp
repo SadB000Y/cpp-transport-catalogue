@@ -39,22 +39,22 @@ namespace transport_catalogue
     SvgInfo MapRenderer::ParsePropLine(json::Node node)
     {
         SvgInfo res;
-        res.width = node.AsMap().at("width").AsDouble();
-        res.height = node.AsMap().at("height").AsDouble();
-        res.padding = node.AsMap().at("padding").AsDouble();
-        res.line_width = node.AsMap().at("line_width").AsDouble();
-        res.stop_radius = node.AsMap().at("stop_radius").AsDouble();
-        res.bus_label_font_size = node.AsMap().at("bus_label_font_size").AsInt();
-        res.bus_label_offset = {node.AsMap().at("bus_label_offset").AsArray()[0].AsDouble(),
-                                node.AsMap().at("bus_label_offset").AsArray()[1].AsDouble()};
+        res.width = node.AsDict().at("width").AsDouble();
+        res.height = node.AsDict().at("height").AsDouble();
+        res.padding = node.AsDict().at("padding").AsDouble();
+        res.line_width = node.AsDict().at("line_width").AsDouble();
+        res.stop_radius = node.AsDict().at("stop_radius").AsDouble();
+        res.bus_label_font_size = node.AsDict().at("bus_label_font_size").AsInt();
+        res.bus_label_offset = {node.AsDict().at("bus_label_offset").AsArray()[0].AsDouble(),
+                                node.AsDict().at("bus_label_offset").AsArray()[1].AsDouble()};
 
-        res.stop_label_font_size = node.AsMap().at("stop_label_font_size").AsInt();
-        res.stop_label_offset = {node.AsMap().at("stop_label_offset").AsArray()[0].AsDouble(),
-                                 node.AsMap().at("stop_label_offset").AsArray()[1].AsDouble()};
-        res.underlayer_color = ParseColor(node.AsMap().at("underlayer_color"));
-        res.underlayer_width = node.AsMap().at("underlayer_width").AsDouble();
+        res.stop_label_font_size = node.AsDict().at("stop_label_font_size").AsInt();
+        res.stop_label_offset = {node.AsDict().at("stop_label_offset").AsArray()[0].AsDouble(),
+                                 node.AsDict().at("stop_label_offset").AsArray()[1].AsDouble()};
+        res.underlayer_color = ParseColor(node.AsDict().at("underlayer_color"));
+        res.underlayer_width = node.AsDict().at("underlayer_width").AsDouble();
 
-        auto color_array = node.AsMap().at("color_palette").AsArray();
+        auto color_array = node.AsDict().at("color_palette").AsArray();
         for (auto memb : color_array)
         {
             res.color_palette.push_back(ParseColor(memb));
