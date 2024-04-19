@@ -8,13 +8,11 @@ graph::DirectedWeightedGraph<double> TransportRouter::BuildGraph()
     {
         const auto curr_stops = bus.stops;
 
-        // круговой маршрут
         if (bus.is_roundtrip)
         {
             AddRoundtripBusToGtaph(result, bus);
         }
 
-        // не круговой
         else
         {
 

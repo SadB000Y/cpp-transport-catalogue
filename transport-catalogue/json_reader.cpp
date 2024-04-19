@@ -16,7 +16,7 @@ namespace transport_catalogue
         {
             is_roundtrip = false;
             std::vector<std::string> temp_vect = stops;
-            temp_vect.pop_back(); // обрезаем последний элемент, чтобы автобус поехал на предпосл остановку
+            temp_vect.pop_back();
             std::reverse(temp_vect.begin(), temp_vect.end());
             for (auto& memb : temp_vect)
             {
