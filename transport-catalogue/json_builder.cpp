@@ -1,208 +1,216 @@
 #include "json_builder.h"
 
-json::Builder::Builder() {
-	nodes_stack_.push_back(&root_);
+json::BaseContext::BaseContext(Builder& builder) : builder_(builder) {}
+
+json::Node json::BaseContext::Build()
+{
+	return builder_.Build();
+}
+
+json::BaseContext json::BaseContext::Value(const Node& value)
+{
+	builder_.Value(value);
+	return *this;
+}
+
+json::DictItemContext json::BaseContext::StartDict()
+{
+	builder_.StartDict();
+	return DictItemContext(*this);
+}
+
+json::ArrayItemContext json::BaseContext::StartArray()
+{
+	builder_.StartArray();
+	return ArrayItemContext(*this);
+}
+
+json::DictItemContext::DictItemContext(BaseContext base) : BaseContext(base)
+{
+}
+
+json::KeyItemContext json::DictItemContext::Key(const std::string& key)
+{
+	builder_.Key(key);
+	return KeyItemContext(*this);
+}
+
+json::KeyItemContext json::BaseContext::Key(const std::string& key)
+{
+	builder_.Key(key);
+	return KeyItemContext(*this);
+}
+
+json::BaseContext json::BaseContext::EndDict()
+{
+	builder_.EndDict();
+	return this->builder_;
+}
+
+json::KeyItemContext::KeyItemContext(DictItemContext dict) : BaseContext(dict) {}
+
+json::DictItemContext json::KeyItemContext::Value(const Node& value)
+{
+	builder_.Value(value);
+	return DictItemContext(*this);
+}
+
+json::ArrayItemContext::ArrayItemContext(BaseContext base) : BaseContext(base) {}
+
+json::ArrayItemContext json::ArrayItemContext::Value(const Node& value)
+{
+	builder_.Value(value);
+	return ArrayItemContext(*this);
+}
+
+json::BaseContext json::BaseContext::EndArray()
+{
+	builder_.EndArray();
+	return this->builder_;
+}
+
+json::Builder& json::Builder::Key(std::string key)
+{
+	if (nodes_stack_.empty() && root_ != nullptr)
+	{
+		throw std::logic_error("invalid Key(), object is done");
+	}
+	if (!nodes_stack_.top()->IsMap())
+	{
+		throw std::logic_error("invalid Key()");
+	}
+	nodes_stack_.push(new Node(key));
+
+	return *this;
+}
+
+json::Builder& json::Builder::Value(Node value)
+{
+	if (nodes_stack_.empty() && root_ != nullptr)
+	{
+		throw std::logic_error("invalid Value(), object is done");
+	}
+	if (root_ == nullptr)
+	{
+		root_ = std::move(value);
+	}
+	else if (nodes_stack_.top()->IsString())
+	{
+		std::string temp = nodes_stack_.top()->AsString();
+		delete nodes_stack_.top();
+		nodes_stack_.pop();
+		std::get<Dict>(nodes_stack_.top()->GetValue()).insert({ temp, std::move(value) });
+	}
+	else if (nodes_stack_.top()->IsArray())
+	{
+		std::get<Array>(nodes_stack_.top()->GetValue()).emplace_back(value);
+	}
+	else
+	{
+		throw std::logic_error("invalid Value()");
+	}
+
+	return *this;
 }
 
 json::DictItemContext json::Builder::StartDict()
 {
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsDict() && keys_.has_value())
+	if (nodes_stack_.empty() && root_ != nullptr)
 	{
-		auto& dict = std::get<Dict>(top_node->GetValue());
-		auto it = dict.emplace(keys_.value(), Dict());
-		nodes_stack_.push_back(&it.first->second);
-		keys_.reset();
+		throw std::logic_error("invalid StartDict(), object is done");
 	}
-	else if (top_node->IsArray())
+	if (root_ == nullptr)
 	{
-		auto& arr = std::get<Array>(top_node->GetValue());
-		arr.emplace_back(Dict());
-		*(nodes_stack_.back()) = arr;
-		nodes_stack_.push_back(&arr.back());
+		root_ = *new Dict;
+		nodes_stack_.push(&root_);
 	}
-	else if (top_node->IsNull())
+	else if (nodes_stack_.top()->IsString())
 	{
-		top_node->GetValue() = Dict();
+		std::string temp = nodes_stack_.top()->AsString();
+		delete nodes_stack_.top();
+		nodes_stack_.pop();
+		std::get<Dict>(nodes_stack_.top()->GetValue()).insert({ temp, *new Dict });
+		nodes_stack_.push(&std::get<Dict>(nodes_stack_.top()->GetValue()).at(temp));
+	}
+	else if (nodes_stack_.top()->IsArray())
+	{
+		std::get<Array>(nodes_stack_.top()->GetValue()).emplace_back(*new Dict);
+		nodes_stack_.push((Node*)&std::get<Dict>(std::get<Array>(nodes_stack_.top()->GetValue()).back().GetValue()));
 	}
 	else
-		throw std::logic_error("Wrong context of StartDict()");
+	{
+		throw std::logic_error("invalid StartDict()");
+	}
 
-	return *this;
-}
-
-json::Builder& json::Builder::EndDict()
-{
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsDict() && !keys_.has_value())
-		nodes_stack_.pop_back();
-	else
-		throw std::logic_error("Dictionary must exist");
-
-	return *this;
+	return DictItemContext(*this);
 }
 
 json::ArrayItemContext json::Builder::StartArray()
 {
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsDict() && keys_.has_value())
+	if (nodes_stack_.empty() && root_ != nullptr)
 	{
-		auto& dict = std::get<Dict>(top_node->GetValue());
-		auto it = dict.emplace(keys_.value(), Array());
-		nodes_stack_.push_back(&it.first->second);
-		keys_.reset();
+		throw std::logic_error("invalid StartArray(), object is done");
 	}
-	else if (top_node->IsArray())
+	if (root_ == nullptr)
 	{
-		auto& arr = std::get<Array>(top_node->GetValue());
-		arr.emplace_back(Array());
-		*(nodes_stack_.back()) = arr;
-		nodes_stack_.push_back(&arr.back());
+		root_ = *new Array;
+		nodes_stack_.push(&root_);
 	}
-	else if (top_node->IsNull())
+	else if (nodes_stack_.top()->IsString())
 	{
-		top_node->GetValue() = Array();
+		std::string temp = nodes_stack_.top()->AsString();
+		delete nodes_stack_.top();
+		nodes_stack_.pop();
+		std::get<Dict>(nodes_stack_.top()->GetValue()).insert({ temp, *new Array });
+		nodes_stack_.push(&std::get<Dict>(nodes_stack_.top()->GetValue()).at(temp));
+	}
+	else if (nodes_stack_.top()->IsArray())
+	{
+		std::get<Array>(nodes_stack_.top()->GetValue()).emplace_back(*new Array);
+		nodes_stack_.push((Node*)&std::get<Array>(std::get<Array>(nodes_stack_.top()->GetValue()).back().GetValue()));
 	}
 	else
-		throw std::logic_error("Wrong context of StartArray()");
+	{
+		throw std::logic_error("invalid StartArray()");
+	}
+	return json::ArrayItemContext(*this);
+}
+
+json::Builder& json::Builder::EndDict()
+{
+	if (nodes_stack_.empty() && root_ != nullptr)
+	{
+		throw std::logic_error("invalid EndDict(), object is done");
+	}
+	if (!nodes_stack_.top()->IsMap())
+	{
+		throw std::logic_error("invalid EndDict()");
+	}
+	nodes_stack_.pop();
 
 	return *this;
 }
 
 json::Builder& json::Builder::EndArray()
 {
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsArray())
-		nodes_stack_.pop_back();
-	else
-		throw std::logic_error("Array must exist");
-
-	return *this;
-}
-
-json::KeyItemContext json::Builder::Key(std::string key)
-{
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsDict() && !keys_.has_value())
-		keys_ = std::move(key);
-	else
-		throw std::logic_error("Wrong map key: " + key);
-
-	return *this;
-}
-
-json::Builder& json::Builder::Value(Node::Value value)
-{
-	auto top_node = nodes_stack_.back();
-
-	if (top_node->IsArray())
+	if (nodes_stack_.empty() && root_ != nullptr)
 	{
-		auto arr = top_node->AsArray();
-		arr.push_back(GetNode(value));
-		*(nodes_stack_.back()) = arr;
+		throw std::logic_error("invalid EndArray(), object is done");
 	}
-	else if (top_node->IsDict() && keys_.has_value())
+	if (!nodes_stack_.top()->IsArray())
 	{
-		auto dict = top_node->AsDict();
-		dict[keys_.value()].GetValue() = value;
-		*(nodes_stack_.back()) = dict;
-		keys_.reset();
+		throw std::logic_error("invalid EndArray()");
 	}
-	else if (top_node->IsNull())
-	{
-		root_.GetValue() = value;
-	}
-	else
-		throw std::logic_error("Wrong context of command Value()");
+	nodes_stack_.pop();
+
 	return *this;
 }
 
 json::Node json::Builder::Build()
 {
-	if (nodes_stack_.size() == 1)
+	if (!nodes_stack_.empty() || root_ == nullptr)
 	{
-		if (nodes_stack_.back()->IsArray() || nodes_stack_.back()->IsDict() || nodes_stack_.back()->IsNull())
-			throw std::logic_error("You must close Array or Dict before Build()");
-		else
-			return root_;
+		throw std::logic_error("invalid Build()");
 	}
-
 	return root_;
-}
-
-json::KeyItemContext json::DictItemContext::Key(std::string key)
-{
-	return main_.Key(key);
-}
-
-json::Builder& json::DictItemContext::EndDict()
-{
-	return main_.EndDict();
-}
-
-json::ValueItemContext json::KeyItemContext::Value(Node::Value val)
-{
-	return main_.Value(val);
-}
-
-json::ArrayItemContext json::KeyItemContext::StartArray()
-{
-	return main_.StartArray();
-}
-
-json::DictItemContext json::KeyItemContext::StartDict()
-{
-	return main_.StartDict();
-}
-
-json::KeyItemContext json::ValueItemContext::Key(std::string key)
-{
-	return main_.Key(key);
-}
-
-json::Builder& json::ValueItemContext::EndDict()
-{
-	return main_.EndDict();
-}
-
-json::ArrayItemContext json::ArrayItemContext::StartArray()
-{
-	return main_.StartArray();
-}
-
-json::DictItemContext json::ArrayItemContext::StartDict()
-{
-	return main_.StartDict();
-}
-json::ArrayItemContext json::ArrayItemContext::Value(Node::Value val)
-{
-	return main_.Value(val);
-}
-json::Builder& json::ArrayItemContext::EndArray()
-{
-	return main_.EndArray();
-}
-
-json::Node json::Builder::GetNode(json::Node::Value value) {
-	if (std::holds_alternative<int>(value))
-		return Node(std::get<int>(value));
-	else if (std::holds_alternative<double>(value))
-		return Node(std::get<double>(value));
-	else if (std::holds_alternative<std::string>(value))
-		return Node(std::get<std::string>(value));
-	else if (std::holds_alternative<std::nullptr_t>(value))
-		return Node(std::get<std::nullptr_t>(value));
-	else if (std::holds_alternative<bool>(value))
-		return Node(std::get<bool>(value));
-	else if (std::holds_alternative<Dict>(value))
-		return Node(std::get<Dict>(value));
-	else if (std::holds_alternative<Array>(value))
-		return Node(std::get<Array>(value));
-	else
-		throw std::logic_error("Bad value");
 }

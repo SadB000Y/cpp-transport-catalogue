@@ -4,6 +4,5 @@ int main()
 {
     using namespace transport_catalogue;
     TransportCatalogue catal;
-    JSONreader reader;
-    reader.ProcessRequest(std::cin, std::cout, catal);
+    ProcessRequest(std::cin, std::cout, catal);
 }

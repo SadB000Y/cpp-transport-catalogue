@@ -37,34 +37,28 @@ namespace transport_catalogue
         std::vector<svg::Color> color_palette;
     };
 
-    inline const double EPSILON = 1e-6;
-    bool IsZero(double value);
     svg::Color ParseColor(json::Node node);
 
-    class MapRenderer {
+    SvgInfo ParsePropLine(json::Node node);
 
-    public:
+    svg::Document& FormSVGDocument(TransportCatalogue& catal, SvgInfo& prop);
 
-        svg::Document& FormSVGDocument(TransportCatalogue& catal, SvgInfo& prop);
+    svg::Polyline DrawThePolyline(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
+    void DrawStops(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
+    void DrawStopNames(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
 
-        SvgInfo ParsePropLine(json::Node node);
+    std::vector<svg::Text> DrawRouteNames(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
 
-    private:
+    inline const double EPSILON = 1e-6;
+    bool IsZero(double value);
 
-        svg::Polyline DrawThePolyline(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
-        void DrawStops(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
-        void DrawStopNames(std::vector<geo::Coordinates>& coords, TransportCatalogue& catal, SvgInfo& prop, svg::Document& result_doc);
-        std::vector<svg::Text> DrawRouteNames(std::vector<geo::Coordinates>& coords, Buses bus, SvgInfo& prop, int& color_iterator);
-
-    };
-
-    class SphereProjector{
-
+    class SphereProjector
+    {
     public:
         // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
         template <typename PointInputIt>
         SphereProjector(PointInputIt points_begin, PointInputIt points_end,
-                        double max_width, double max_height, double padding)
+            double max_width, double max_height, double padding)
             : padding_(padding) //
         {
             // Если точки поверхности сферы не заданы, вычислять нечего
@@ -126,7 +120,7 @@ namespace transport_catalogue
         {
             return {
                 (coords.lng - min_lon_) * zoom_coeff_ + padding_,
-                (max_lat_ - coords.lat) * zoom_coeff_ + padding_};
+                (max_lat_ - coords.lat) * zoom_coeff_ + padding_ };
         }
 
     private:
