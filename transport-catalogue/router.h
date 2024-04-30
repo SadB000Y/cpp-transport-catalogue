@@ -12,8 +12,8 @@
 #include <utility>
 #include <vector>
 
-namespace graph
-{
+//namespace graph
+//{
 
     template <typename Weight>
     class Router
@@ -137,4 +137,4 @@ namespace graph
         return RouteInfo{ weight, std::move(edges) };
     }
 
-} // namespace graph
+//} // namespace graph

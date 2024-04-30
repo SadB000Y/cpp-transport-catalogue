@@ -1,6 +1,7 @@
 #include "json_reader.h"
 #include "router.h"
 #include <sstream>
+
 namespace transport_catalogue
 {
 
@@ -116,7 +117,7 @@ namespace transport_catalogue
         const auto wait_time = settings.at("bus_wait_time").AsDouble();
         TransportRouter transport_router(catalogue, speed, wait_time);
         auto result_graph = transport_router.GetGraph();
-        graph::Router<double> result_router(result_graph);
+        Router<double> result_router(result_graph);
         //
 
         bool isfirstreq = true;
@@ -245,7 +246,7 @@ namespace transport_catalogue
         }
     }
 
-    json::Dict FormRouteDataJSON(json::Node request_node, TransportCatalogue& catalogue, const json::Node& route_prop, graph::Router<double>& result_router)
+    json::Dict FormRouteDataJSON(json::Node request_node, TransportCatalogue& catalogue, const json::Node& route_prop, Router<double>& result_router)
     {
         json::Node result;
 

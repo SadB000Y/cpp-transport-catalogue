@@ -27,6 +27,7 @@ namespace transport_catalogue
         std::unordered_map<Stop*, std::set<std::string_view>>& GetStopsToBusesMap();
 
         std::deque<Buses>& GetBusesDeque();
+       
         const std::deque<Buses>& GetBusesDequeConst() const;
 
         void SetDistance(int64_t dist, Stop* from, Stop* to);
@@ -38,6 +39,7 @@ namespace transport_catalogue
         std::set<std::string_view>& GetUniqueStops();
 
         size_t GetStopId(std::string_view stop_name) const;
+        
         std::string GetStopFromId(size_t stop_id) const;
 
         size_t GetStopsCount() const;

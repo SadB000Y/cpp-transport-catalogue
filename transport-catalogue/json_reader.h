@@ -27,7 +27,7 @@ namespace transport_catalogue
     json::Dict FormBusDataJSON(json::Node request_node, TransportCatalogue& catalogue);
     json::Dict FormStopDataJSON(json::Node request_node, TransportCatalogue& catalogue);
     json::Dict FormMapDataJson(json::Node request_node, const std::string& map_rend_string);
-    json::Dict FormRouteDataJSON(json::Node request_node, TransportCatalogue& catalogue, const json::Node& route_prop, graph::Router<double>& result_router);
+    json::Dict FormRouteDataJSON(json::Node request_node, TransportCatalogue& catalogue, const json::Node& route_prop, Router<double>& result_router);
 
     /*
      * Здесь можно разместить код наполнения транспортного справочника данными из JSON,

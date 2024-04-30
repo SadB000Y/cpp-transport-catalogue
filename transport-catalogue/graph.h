@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <vector>
 
-namespace graph
-{
+//namespace graph
+//{
 
     using VertexId = size_t;
     using EdgeId = size_t;
@@ -82,4 +82,4 @@ namespace graph
     {
         return ranges::AsRange(incidence_lists_.at(vertex));
     }
-} // namespace graph
+//} // namespace graph

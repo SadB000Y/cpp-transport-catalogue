@@ -1,14 +1,8 @@
 #pragma once
-
 #include "transport_catalogue.h"
 #include "json.h"
 #include "graph.h"
 #include "numeric"
-#include "optional"
-#include "router.h"
-
-using namespace graph;
-
 class TransportRouter
 {
 
@@ -18,24 +12,15 @@ public:
         graph_ = BuildGraph();
     }
 
-    const graph::DirectedWeightedGraph<double>& GetGraph()
+    const DirectedWeightedGraph<double>& GetGraph()
     {
         return graph_;
     }
 
-    template <typename Weight>
-    std::optional<typename Router<Weight>::RouteInfo> GetRoute(graph::VertexId from, graph::VertexId to) const
-    {
-        graph::Router<Weight> router(&graph_);
-        return router.BuildRoute(from, to);
-    }
-
 private:
-    graph::DirectedWeightedGraph<double> BuildGraph();
-    void AddRoundtripBusToGtaph(graph::DirectedWeightedGraph<double>& result, const transport_catalogue::Buses& bus);
-    void AddDirectBusToGraph(graph::DirectedWeightedGraph<double>& result, const transport_catalogue::Buses& bus);
+    DirectedWeightedGraph<double> BuildGraph();
     const transport_catalogue::TransportCatalogue& catalogue_;
     double speed_;
     double wait_time_;
-    graph::DirectedWeightedGraph<double> graph_;
+    DirectedWeightedGraph<double> graph_;
 };
