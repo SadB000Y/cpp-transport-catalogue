@@ -43,6 +43,19 @@ namespace transport_catalogue
         std::set<std::string_view> passing_buses;
     };
 
+    enum ReqType {
+        BUS,
+        STOP
+    };
+
+    struct RouteOutput
+    {
+        std::string name;// bus or stop_name
+        double time;
+        int span_count;
+        ReqType req_type;
+    };
+
     /*
      * В этом файле вы можете разместить классы/структуры, которые являются частью предметной области (domain)
      * вашего приложения и не зависят от транспортного справочника. Например Автобусные маршруты и Остановки.

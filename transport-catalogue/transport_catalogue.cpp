@@ -11,8 +11,6 @@ namespace transport_catalogue
         Stop* stop_ptr = &stops_.back();
         stopname_to_stop_.insert({ std::string_view{stops_.back().name}, stop_ptr });
         stop_name_to_id[std::string_view{ stops_.back().name }] = stop_count++;
-
-        id_to_stopname[stop_name_to_id[stop.name]] = stop.name;
     }
 
     Stop* TransportCatalogue::FindStop(const std::string& name_of_stop)
@@ -134,11 +132,6 @@ namespace transport_catalogue
     size_t TransportCatalogue::GetStopId(std::string_view stop_name) const
     {
         return stop_name_to_id.at(stop_name);
-    }
-
-    std::string TransportCatalogue::GetStopFromId(size_t stop_id) const
-    {
-        return id_to_stopname.at(stop_id);
     }
 
     size_t TransportCatalogue::GetStopsCount() const

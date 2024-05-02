@@ -40,8 +40,6 @@ namespace transport_catalogue
 
         size_t GetStopId(std::string_view stop_name) const;
         
-        std::string GetStopFromId(size_t stop_id) const;
-
         size_t GetStopsCount() const;
 
     private:
@@ -69,7 +67,6 @@ namespace transport_catalogue
         std::unordered_map<std::pair<Stop*, Stop*>, int64_t, StopsHasher> dist_betw_stops_;
         std::unordered_map<std::string_view, bool> roundtrip_of_buses;
         std::unordered_map<std::string_view, size_t> stop_name_to_id;
-        std::unordered_map<size_t, std::string> id_to_stopname;
         size_t stop_count = 0;
     };
 
