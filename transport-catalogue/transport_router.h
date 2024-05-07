@@ -1,40 +1,37 @@
 #pragma once
 
-#include "transport_catalogue.h"
-#include "json.h"
-#include "graph.h"
-#include "numeric"
-#include "optional"
 #include "router.h"
+#include "transport_catalogue.h"
 
-// Я Я постарался поработать ещё над всеми замечаниями, убрал лишнюю функцию из каталога, 
-// но с роутером ничего не могу придумать от слова совсем, по-другому не вижу решение этой задачи :(
+#include <memory>
 
-class TransportRouter
-{
+namespace transport_catalogue {
 
-public:
-    TransportRouter(const transport_catalogue::TransportCatalogue& catalogue, double speed, double wait_time) : 
-                    catalogue_(catalogue), speed_(speed), wait_time_(wait_time)
-    {
-        graph_ = BuildGraph();
-    }
+	class Router {
+	public:
+		Router() = default;
 
-    const DirectedWeightedGraph<double>& GetGraph() const {
-        return graph_;
-    }
+		Router(const int bus_wait_time, const double bus_velocity)
+			: bus_wait_time_(bus_wait_time)
+			, bus_velocity_(bus_velocity) {}
 
-    template <typename Weight>
-    std::optional<typename Router<Weight>::RouteInfo> GetRoute(VertexId from, VertexId to) const {
-        Router<Weight> router(&graph_);
-        return router.BuildRoute(from, to);
-    }
+		Router(const Router& settings, const Catalogue& catalogue) {
+			bus_wait_time_ = settings.bus_wait_time_;
+			bus_velocity_ = settings.bus_velocity_;
+			BuildGraph(catalogue);
+		}
 
-private:
-    DirectedWeightedGraph<double> BuildGraph();
-    const transport_catalogue::TransportCatalogue& catalogue_;
-    double speed_;
-    double wait_time_;
-    DirectedWeightedGraph<double> graph_;
+		const graph::DirectedWeightedGraph<double>& BuildGraph(const Catalogue& catalogue);
+		const std::optional<graph::Router<double>::RouteInfo> FindRoute(const std::string_view stop_from, const std::string_view stop_to) const;
+		const graph::DirectedWeightedGraph<double>& GetGraph() const;
 
-};
+	private:
+		int bus_wait_time_ = 0;
+		double bus_velocity_ = 0.0;
+
+		graph::DirectedWeightedGraph<double> graph_;
+		std::map<std::string, graph::VertexId> stop_ids_;
+		std::unique_ptr<graph::Router<double>> router_;
+	};
+
+}

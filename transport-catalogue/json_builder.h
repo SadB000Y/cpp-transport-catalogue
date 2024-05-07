@@ -1,88 +1,67 @@
 #pragma once
-#include <stack>
-#include <variant>
+
 #include "json.h"
 
-namespace json
-{
-	class ArrayItemContext;
-	class DictItemContext;
-	class BaseContext;
+#include <optional>
 
-	class Builder
-	{
-		json::Node root_;
-		std::stack<Node*, std::vector<Node*>> nodes_stack_;
+namespace json {
 
-	public:
-		Builder() = default;
+    class Builder {
+    public:
+        class DictItemContext;
+        class DictKeyContext;
+        class ArrayItemContext;
 
-		~Builder() = default;
+        Builder();
+        DictKeyContext Key(std::string key);
+        Builder& Value(Node::Value value);
+        DictItemContext StartDict();
+        Builder& EndDict();
+        ArrayItemContext StartArray();
+        Builder& EndArray();
+        Node Build();
+        Node GetNode(Node::Value value);
 
-		Builder& Key(std::string key);
+    private:
+        Node root_{ nullptr };
+        std::vector<Node*> nodes_stack_;
+        std::optional<std::string> key_{ std::nullopt };
+    };
 
-		Builder& Value(Node value);
+    class Builder::DictItemContext {
+    public:
+        DictItemContext(Builder& builder);
 
-		DictItemContext StartDict();
+        DictKeyContext Key(std::string key);
+        Builder& EndDict();
 
-		ArrayItemContext StartArray();
+    private:
+        Builder& builder_;
+    };
 
-		Builder& EndDict();
+    class Builder::ArrayItemContext {
+    public:
+        ArrayItemContext(Builder& builder);
 
-		Builder& EndArray();
+        ArrayItemContext Value(Node::Value value);
+        DictItemContext StartDict();
+        Builder& EndArray();
+        ArrayItemContext StartArray();
 
-		Node Build();
-	};
+    private:
+        Builder& builder_;
+    };
 
-	class KeyItemContext;
+    class Builder::DictKeyContext {
+    public:
+        DictKeyContext(Builder& builder);
 
-	class BaseContext
-	{
-	public:
-		BaseContext(Builder& builder);
-		Node Build();
-		BaseContext Value(const Node& value);
-		KeyItemContext Key(const std::string& key);
-		DictItemContext StartDict();
-		ArrayItemContext StartArray();
-		BaseContext EndArray();
-		BaseContext EndDict();
+        DictItemContext Value(Node::Value value);
+        ArrayItemContext StartArray();
+        DictItemContext StartDict();
 
-	protected:
-		Builder& builder_;
-	};
+    private:
+        Builder& builder_;
+    };
 
-	class DictItemContext : public BaseContext
-	{
-	public:
-		DictItemContext(BaseContext base);
-		Node Build() = delete;
-		KeyItemContext Key(const std::string& key);
-		BaseContext Value(Node value) = delete;
-		DictItemContext StartDict() = delete;
-		ArrayItemContext StartArray() = delete;
-		BaseContext EndArray() = delete;
-	};
-
-	class KeyItemContext : public BaseContext
-	{
-	public:
-		KeyItemContext(DictItemContext dict);
-		DictItemContext Value(const Node& value);
-		Node Build() = delete;
-		KeyItemContext Key(const std::string& key) = delete;
-		BaseContext EndArray() = delete;
-		BaseContext EndDict() = delete;
-	};
-
-	class ArrayItemContext : public BaseContext
-	{
-	public:
-		ArrayItemContext(BaseContext base);
-		Node Build() = delete;
-		ArrayItemContext Value(const Node& value);
-		KeyItemContext Key(std::string key) = delete;
-		BaseContext EndDict() = delete;
-	};
-
-}
+} // namespace json

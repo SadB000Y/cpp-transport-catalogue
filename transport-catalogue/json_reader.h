@@ -1,37 +1,39 @@
 #pragma once
 
 #include "json.h"
-#include "domain.h"
 #include "transport_catalogue.h"
 #include "map_renderer.h"
-#include "json_builder.h"
-#include "transport_router.h"
-#include "graph.h"
-#include "router.h"
-namespace transport_catalogue
-{
-    BusStops ParseBusInfo(json::Dict dict_bus_info);
-    Stop ParseStopInfo(json::Dict dict_stop_info);
+#include "request_handler.h"
 
-    struct Requests
-    {
-        json::Array stops_requests;
-        json::Array bus_requests;
-    };
+#include <iostream>
 
-    void InputReader(json::Array base_req, TransportCatalogue& catalogue);
-    void AnswerRequests(const json::Array& stat_req, std::ostream& output, TransportCatalogue& catalogue, SvgInfo& properties, json::Node route_prop);
+class JsonReader {
+public:
+    JsonReader(std::istream& input)
+        : input_(json::Load(input))
+    {}
 
-    void ProcessRequest(std::istream& input, std::ostream& output, TransportCatalogue& catalogue);
+    const json::Node& GetBaseRequests() const;
+    const json::Node& GetStatRequests() const;
+    const json::Node& GetRenderSettings() const;
+    const json::Node& GetRoutingSettings() const;
 
-    json::Dict FormBusDataJSON(json::Node request_node, TransportCatalogue& catalogue);
-    json::Dict FormStopDataJSON(json::Node request_node, TransportCatalogue& catalogue);
-    json::Dict FormMapDataJson(json::Node request_node, const std::string& map_rend_string);
-    json::Dict FormRouteDataJSON(json::Node request_node, TransportCatalogue& catalogue, const json::Node& route_prop, Router<double>& result_router);
+    void ProcessRequests(const json::Node& stat_requests, RequestHandler& rh) const;
 
-    /*
-     * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
-     * а также код обработки запросов к базе и формирование массива ответов в формате JSON
-     */
+    void FillCatalogue(transport_catalogue::Catalogue& catalogue);
+    renderer::MapRenderer FillRenderSettings(const json::Node& settings) const;
+    transport_catalogue::Router FillRoutingSettings(const json::Node& settings) const;
 
-}
+    const json::Node PrintRoute(const json::Dict& request_map, RequestHandler& rh) const;
+    const json::Node PrintStop(const json::Dict& request_map, RequestHandler& rh) const;
+    const json::Node PrintMap(const json::Dict& request_map, RequestHandler& rh) const;
+    const json::Node PrintRouting(const json::Dict& request_map, RequestHandler& rh) const;
+
+private:
+    json::Document input_;
+    json::Node dummy_ = nullptr;
+
+    std::tuple<std::string_view, geo::Coordinates, std::map<std::string_view, int>> FillStop(const json::Dict& request_map) const;
+    void FillStopDistances(transport_catalogue::Catalogue& catalogue) const;
+    std::tuple<std::string_view, std::vector<const transport_catalogue::Stop*>, bool> FillRoute(const json::Dict& request_map, transport_catalogue::Catalogue& catalogue) const;
+};
