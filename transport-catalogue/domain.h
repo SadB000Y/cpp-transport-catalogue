@@ -20,13 +20,13 @@ namespace transport_catalogue
     {
         std::string name;
         geo::Coordinates coordinates;
-        std::set<std::string> stop_to_dist;
+        std::unordered_map<std::string, int64_t> stops_to_dists;
     };
 
     struct Buses
     {
         std::string name;
-        std::vector<const Stop*> stops;
+        std::vector<Stop *> stops;
         bool is_roundtrip;
     };
 
@@ -35,7 +35,7 @@ namespace transport_catalogue
         size_t numb_of_stops;
         size_t numb_of_unique_stops;
         double length;
-        double true_length;
+        int64_t true_length;
     };
 
     struct StopInfo
@@ -54,14 +54,6 @@ namespace transport_catalogue
         double time;
         int span_count;
         ReqType req_type;
-    };
-
-    struct StopDistancesHasher {
-        size_t operator()(const std::pair<const Stop*, const Stop*>& points) const {
-            size_t hash_first = std::hash<const void*>{}(points.first);
-            size_t hash_second = std::hash<const void*>{}(points.second);
-            return hash_first + hash_second * 37;
-        }
     };
 
     /*

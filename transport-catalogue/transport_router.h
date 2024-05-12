@@ -1,37 +1,66 @@
 #pragma once
 
-#include "router.h"
+#include <variant>
+#include <utility>
+#include <vector>
+
 #include "transport_catalogue.h"
+#include "json.h"
+#include "graph.h"
+#include "numeric"
+#include "optional"
+#include "router.h"
 
-#include <memory>
+template <typename Weight>
+class TransportRouter
+{
+public:
 
-namespace transport_catalogue {
+    struct stop_item {
+        std::string stop_name;
+        double time;
+    };
 
-	class Router {
-	public:
-		Router() = default;
+    struct bus_item {
+        std::string bus_name;
+        int span_count;
+        double time;
+    };
 
-		Router(const int bus_wait_time, const double bus_velocity)
-			: bus_wait_time_(bus_wait_time)
-			, bus_velocity_(bus_velocity) {}
+    using route = std::variant<stop_item, bus_item>;
+    
+    TransportRouter(const transport_catalogue::TransportCatalogue& catalogue, double speed, double wait_time) : 
+                    catalogue_(catalogue), speed_(speed), wait_time_(wait_time)
+                    , graph_(BuildGraph()), router_(graph_)
+    { }
+    
+    std::optional<std::pair<std::vector<route>, double>> GetRoute(std::string_view from, std::string_view to) const {
+        auto route_info =router_.BuildRoute(catalogue_.GetStopId(from), catalogue_.GetStopId(to));
+        
+        if (!route_info.has_value()) {
+            return { };
+        }
+        std::vector<route> result;
+        Weight weight = route_info.value().weight;
+        for (auto& item : route_info.value().edges)
 
-		Router(const Router& settings, const Catalogue& catalogue) {
-			bus_wait_time_ = settings.bus_wait_time_;
-			bus_velocity_ = settings.bus_velocity_;
-			BuildGraph(catalogue);
-		}
+        {
+            auto curr_edge = graph_.GetEdge(item);
+            stop_item stop = { std::move(curr_edge.stop_name), wait_time_ };
+            result.push_back(std::move(stop));
+            bus_item bus = { std::move(curr_edge.bus_name), curr_edge.span_count, curr_edge.weight - wait_time_};
+            result.push_back(std::move(bus));
 
-		const graph::DirectedWeightedGraph<double>& BuildGraph(const Catalogue& catalogue);
-		const std::optional<graph::Router<double>::RouteInfo> FindRoute(const std::string_view stop_from, const std::string_view stop_to) const;
-		const graph::DirectedWeightedGraph<double>& GetGraph() const;
+        }
+        return {{result, weight}};
+    }
+    
+private:
+    DirectedWeightedGraph<double> BuildGraph();
+    const transport_catalogue::TransportCatalogue& catalogue_;
+    double speed_;
+    double wait_time_;
+    DirectedWeightedGraph<double> graph_;
 
-	private:
-		int bus_wait_time_ = 0;
-		double bus_velocity_ = 0.0;
-
-		graph::DirectedWeightedGraph<double> graph_;
-		std::map<std::string, graph::VertexId> stop_ids_;
-		std::unique_ptr<graph::Router<double>> router_;
-	};
-
-}
+    Router<Weight> router_;
+};
