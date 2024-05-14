@@ -103,7 +103,7 @@ namespace transport_catalogue
         auto settings = route_prop.AsDict();
         const auto speed = settings.at("bus_velocity").AsInt() * 16.6666667;
         const auto wait_time = settings.at("bus_wait_time").AsDouble();
-        TransportRouter<double> transport_router(catalogue, speed, wait_time);
+        TransportRouter transport_router(catalogue, speed, wait_time);
         bool isfirstreq = true;
         for (auto& request_node : stat_req)
         {
@@ -218,7 +218,7 @@ namespace transport_catalogue
         }
     }
 
-    json::Dict FormRouteDataJSON(json::Node request_node, TransportRouter<double>& transport_router)
+    json::Dict FormRouteDataJSON(json::Node request_node, TransportRouter& transport_router)
     {
         json::Node result;
         int request_id = request_node.AsDict().at("id").AsInt();
@@ -230,18 +230,19 @@ namespace transport_catalogue
             json::Array items;
             for (const auto & elem : result_route.value().first) 
             {
-                if (std::holds_alternative<TransportRouter<double>::stop_item>(elem)) {
-                    TransportRouter<double>::stop_item stop = std::get<TransportRouter<double>::stop_item>(elem);
+                if (std::holds_alternative<TransportRouter::StopItem>(elem)) {
+                    TransportRouter::StopItem stop = std::get<TransportRouter::StopItem>(elem);
                     auto wait_item = json::Builder{}.StartDict().Key("type").Value("Wait").Key("stop_name")
-                                                    .Value(std::string(stop.stop_name))
-                                                    .Key("time").Value(stop.time).EndDict().Build();
+                        .Value(std::string(stop.stop_name))
+                        .Key("time").Value(stop.time).EndDict().Build();
                     items.push_back(std::move(wait_item));
                 }
-                if (std::holds_alternative<TransportRouter<double>::bus_item>(elem)) {
-                    TransportRouter<double>::bus_item bus = std::get<TransportRouter<double>::bus_item>(elem);
-                    auto bus_item = json::Builder{}.StartDict().Key("type").Value("Bus").Key("bus").Value(std::string(bus.bus_name))
-                                                               .Key("span_count").Value(bus.span_count).Key("time").Value(bus.time).EndDict().Build();
-                    items.push_back(std::move(bus_item));
+
+                if (std::holds_alternative<TransportRouter::BusItem>(elem)) {
+                    TransportRouter::BusItem bus = std::get<TransportRouter::BusItem>(elem);
+                    auto BusItem = json::Builder{}.StartDict().Key("type").Value("Bus").Key("bus").Value(std::string(bus.bus_name))
+                        .Key("span_count").Value(bus.span_count).Key("time").Value(bus.time).EndDict().Build();
+                    items.push_back(std::move(BusItem));
                 }
             }
             result = json::Builder{}.StartDict().Key("request_id").Value(request_id).Key("total_time").Value(result_route.value().second).Key("items").Value(std::move(items)).EndDict().Build();

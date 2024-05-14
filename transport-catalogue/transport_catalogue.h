@@ -38,7 +38,9 @@ namespace transport_catalogue
 
         std::set<std::string_view>& GetUniqueStops();
 
-        size_t GetStopId(std::string_view stop_name) const;
+        const std::deque<Stop>& GetAllStops() const {
+            return stops_;
+        };
         
         size_t GetStopsCount() const;
 

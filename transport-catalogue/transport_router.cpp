@@ -1,10 +1,18 @@
 #include "transport_router.h"
 
-template <>
-DirectedWeightedGraph<double> TransportRouter<double>::BuildGraph()
+
+DirectedWeightedGraph<double> TransportRouter::BuildGraph()
 {
     DirectedWeightedGraph<double> result(catalogue_.GetStopsCount());
     const auto curr_buses = catalogue_.GetBusesDequeConst();
+
+
+    auto& stops = catalogue_.GetAllStops();
+    int indexId = 0;
+    for (const auto& stop : stops) {
+        vertex_ids_.insert({ stop.name, indexId++ });
+    }
+
     for (auto& bus : curr_buses)
     {
         const auto curr_stops = bus.stops;
@@ -28,8 +36,8 @@ DirectedWeightedGraph<double> TransportRouter<double>::BuildGraph()
                             total_dist += catalogue_.GetDistance(*it, *(it + 1));
                         }
                     }
-                    result.AddEdge({ catalogue_.GetStopId(curr_stops[count_first]->name),
-                                    catalogue_.GetStopId(curr_stops[count_second]->name),
+                    result.AddEdge({ vertex_ids_.at(curr_stops[count_first]->name),
+                                    vertex_ids_.at(curr_stops[count_second]->name),
                                     wait_time_ + total_dist / speed_ * 1.0,
                                     bus.name,
                                     curr_stops[count_first]->name,
@@ -70,8 +78,8 @@ DirectedWeightedGraph<double> TransportRouter<double>::BuildGraph()
                         }
                     }
 
-                    result.AddEdge({ catalogue_.GetStopId(curr_stops[count_first]->name),
-                                    catalogue_.GetStopId(curr_stops[count_second]->name),
+                    result.AddEdge({ vertex_ids_.at(curr_stops[count_first]->name),
+                                    vertex_ids_.at(curr_stops[count_second]->name),
                                     wait_time_ + total_dist / speed_ * 1.0,
                                     bus.name,
                                     curr_stops[count_first]->name,

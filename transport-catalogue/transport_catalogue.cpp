@@ -129,11 +129,6 @@ namespace transport_catalogue
         return unique_stops;
     }
 
-    size_t TransportCatalogue::GetStopId(std::string_view stop_name) const
-    {
-        return stop_name_to_id.at(stop_name);
-    }
-
     size_t TransportCatalogue::GetStopsCount() const
     {
         return stops_.size();
